@@ -5,7 +5,13 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #05101c;
+  /* background-color: #05101c; */
+  /* background-color: #171717; */
+  background-color: #0d0d0d;
   color: white;
   font-family: "Roboto Slab", sans-serif;
+}
+
+.image-inverted {
+  filter: invert(100%);
 }
