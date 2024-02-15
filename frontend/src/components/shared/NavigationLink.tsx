@@ -5,19 +5,19 @@ type Props = {
   bg: string;
   text: string;
   textColor: string;
-  onClick: () => Promise<void>;
+  onClick?: () => Promise<void>;
 };
-
-function NavigationLink({ to, bg, text, textColor, onClick }: Props) {
+const NavigationLink = (props: Props) => {
   return (
     <Link
-      to={to}
-      style={{ backgroundColor: bg, color: textColor }}
-      onClick={onClick}
+      onClick={props.onClick}
+      className="nav-link"
+      to={props.to}
+      style={{ background: props.bg, color: props.textColor }}
     >
-      {text}
+      {props.text}
     </Link>
   );
-}
+};
 
 export default NavigationLink;

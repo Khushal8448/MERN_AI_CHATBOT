@@ -1,25 +1,24 @@
-import { Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-
-function Logo() {
+import Typography from "@mui/material/Typography";
+const Logo = () => {
   return (
     <div
       style={{
         display: "flex",
         marginRight: "auto",
         alignItems: "center",
-        gap: "8px",
+        gap: "15px",
       }}
     >
-      <Link to="/">
+      <Link to={"/"}>
         <img
-          src="./openai.png"
+          src="openai.png"
           alt="openai"
           width={"30px"}
           height={"30px"}
           className="image-inverted"
         />
-      </Link>
+      </Link>{" "}
       <Typography
         sx={{
           display: { md: "block", sm: "none", xs: "none" },
@@ -32,6 +31,6 @@ function Logo() {
       </Typography>
     </div>
   );
-}
+};
 
 export default Logo;
