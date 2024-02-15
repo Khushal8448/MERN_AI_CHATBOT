@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/User.js";
 import { hash, compare } from "bcrypt";
 import { createToken } from "../utils/token-manager.js";
@@ -10,12 +10,12 @@ export const getAllUsers = async (
   next: NextFunction
 ) => {
   try {
-    // get all users
-    const users = await User.find({});
+    //get all users
+    const users = await User.find();
     return res.status(200).json({ message: "OK", users });
   } catch (error) {
     console.log(error);
-    return res.status(200).json({ message: "Error", cause: error.message });
+    return res.status(200).json({ message: "ERROR", cause: error.message });
   }
 };
 
@@ -25,17 +25,15 @@ export const userSignup = async (
   next: NextFunction
 ) => {
   try {
-    // user signup
+    //user signup
     const { name, email, password } = req.body;
-
     const existingUser = await User.findOne({ email });
-    if (existingUser) res.status(401).send("User already registered!");
-
+    if (existingUser) return res.status(401).send("User already registered");
     const hashedPassword = await hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    // Create token and store cookie
+    // create token and store cookie
     res.clearCookie(COOKIE_NAME, {
       httpOnly: true,
       domain: "localhost",
@@ -46,7 +44,6 @@ export const userSignup = async (
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
-
     res.cookie(COOKIE_NAME, token, {
       path: "/",
       domain: "localhost",
@@ -56,11 +53,11 @@ export const userSignup = async (
     });
 
     return res
-      .status(200)
+      .status(201)
       .json({ message: "OK", name: user.name, email: user.email });
   } catch (error) {
     console.log(error);
-    return res.status(200).json({ message: "Error", cause: error.message });
+    return res.status(200).json({ message: "ERROR", cause: error.message });
   }
 };
 
@@ -70,18 +67,19 @@ export const userLogin = async (
   next: NextFunction
 ) => {
   try {
-    // user login
+    //user login
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).send("User not registered!");
+      return res.status(401).send("User not registered");
     }
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) {
       return res.status(403).send("Incorrect Password");
     }
 
-    // Create token and store cookie
+    // create token and store cookie
+
     res.clearCookie(COOKIE_NAME, {
       httpOnly: true,
       domain: "localhost",
@@ -92,7 +90,6 @@ export const userLogin = async (
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
-
     res.cookie(COOKIE_NAME, token, {
       path: "/",
       domain: "localhost",
@@ -106,6 +103,60 @@ export const userLogin = async (
       .json({ message: "OK", name: user.name, email: user.email });
   } catch (error) {
     console.log(error);
-    return res.status(200).json({ message: "Error", cause: error.message });
+    return res.status(200).json({ message: "ERROR", cause: error.message });
+  }
+};
+
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //user token check
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).send("User not registered OR Token malfunctioned");
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).send("Permissions didn't match");
+    }
+    return res
+      .status(200)
+      .json({ message: "OK", name: user.name, email: user.email });
+  } catch (error) {
+    console.log(error);
+    return res.status(200).json({ message: "ERROR", cause: error.message });
+  }
+};
+
+export const userLogout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //user token check
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return res.status(401).send("User not registered OR Token malfunctioned");
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return res.status(401).send("Permissions didn't match");
+    }
+
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      domain: "localhost",
+      signed: true,
+      path: "/",
+    });
+
+    return res
+      .status(200)
+      .json({ message: "OK", name: user.name, email: user.email });
+  } catch (error) {
+    console.log(error);
+    return res.status(200).json({ message: "ERROR", cause: error.message });
   }
 };
